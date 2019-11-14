@@ -1,0 +1,99 @@
+*** Settings ***
+Library    JSONLibrary
+Library    BuiltIn    
+Resource    shared/request_shared_keywords.txt
+Resource    ../variables/authentification_variables.txt
+
+
+*** Variables ***
+${app_access_token}    null
+${app_trusted_access_token}    null
+${ref}    null
+${email}    null
+${updatecustomer_data}    ${CURDIR}../../files/updatecustomer_data.json 
+${cookie}    null
+${code}    null
+${access_token}    null
+${refresh_token}    null
+
+
+*** Keywords ***
+Get App Token
+    ${parameters}    Create Dictionary    grant_type=${client_credentials}	client_secret=${client_secret}    client_id=${client_id}
+    Post Request With Parameters    ${ws_mcdonalds_alias}    ${oauth_token}     ${parameters}
+    The Response Code Should    ${200}
+    ${app_access_token}    Set Variable    ${resp.json().get("access_token")}
+    Set Test Variable    ${app_access_token}    
+    Should Be Equal    ${resp.json().get("token_type")}    bearer    
+
+Get Trusted App Token
+    ${parameters}    Create Dictionary    grant_type=${client_credentials}	client_secret=${trusted_client_secret}    client_id=${trusted_client_id}
+    Post Request With Parameters    ${ws_mcdonalds_alias}    ${oauth_token}     ${parameters}
+    The Response Code Should    ${200}
+    ${app_trusted_access_token}    Set Variable    ${resp.json().get("access_token")}
+    Set Test Variable    ${app_trusted_access_token}    
+    Should Be Equal    ${resp.json().get("token_type")}    bearer  
+    
+Create Prospect Customer
+    ${headers}    Create Dictionary    Authorization=Bearer ${app_access_token}    content-type=application/json
+    ${numbers}=    Evaluate    random.randint(0, 9999)    modules=random    
+    ${email}=    Catenate   mcdofr_${numbers}@mailinator.com
+    Set Test Variable    ${email}    
+    ${data}    Create Dictionary    email=${email}    ageAgreemented=true 
+	Post Request With Headers and data    ${ws_mcdonalds_alias}    ${create_prospect}    ${headers}    ${data}  
+	The Response Code Should    ${200}
+	${ref}    Set Variable    ${resp.json().get("ref")}
+    Set Test Variable    ${ref}
+        
+Update Customer    
+    ${json_obj}    Load JSON From File    ${updatecustomer_data}       
+    ${email_to_add}=   Create Dictionary   email=${email}
+    ${ref_to_add}=   Create Dictionary   ref=${ref}
+    ${data}=    Add Object To Json    ${json_obj}    $    ${email_to_add}
+    ${data}=    Add Object To Json    ${json_obj}    $    ${ref_to_add}
+    log    ${data}
+    ${headers}    Create Dictionary    Authorization=Bearer ${app_access_token}    content-type=application/json
+    Put Request With Header and Json   ${ws_mcdonalds_alias}    /api/customer/${ref}/create     ${headers}    ${data}    
+    The Response Code Should    ${200}
+    
+Unlock Account
+    ${headers}    Create Dictionary    Authorization=Bearer${app_trusted_access_token}
+    Put Request With Header    ${ws_mcdonalds_alias}    /api/customer/7935826759325877/account/unlock    ${headers}
+    The Response Code Should    ${204}
+
+Login Count
+    ${headers}    Create Dictionary    Authorization=${mcdo_basic_auth}    Content-Type=application/x-www-form-urlencoded        
+    ${data}    Create Dictionary     j_password=${user_password}   j_username=${user_email}    keepLogged=on
+    #Post Request With Headers And Data Without Redirection    ${connect_mcdonalds_alias}    ${dologin}    ${headers}    ${data}    
+    ${resp}=    Evaluate    requests.post("https://qlf2-connect-mcdonalds-fr.mcdo.as8677.net/dologin", data=${data}, headers=${headers}, allow_redirects = False)    modules=requests
+    Should Be Equal    ${resp.status_code}    ${302}
+    ${Set-Cookie}    Split String    ${resp.headers["Set-Cookie"]}    ;
+    ${cookie}    Get From List    ${Set-Cookie}    0
+    Log     ${cookie}
+    Set Test Variable    ${cookie}  
+
+Authorisation
+    ${headers}    Create Dictionary    Authorization=${mcdo_basic_auth}    Cookie=${cookie}
+    #${parameters}    Create Dictionary    redirect_uri=${redirect_uri}    client_id=${client_id}    response_type=code
+    #Get Request With Header And Parameter Without Redirection     ${connect_mcdonalds_alias}    ${oauth_authorize}    ${headers}    params=${parameters}    
+    ${resp}=    Evaluate    requests.get("https://qlf2-connect-mcdonalds-fr.mcdo.as8677.net/oauth/authorize?redirect_uri=https://www.local-www-mcdonalds-fr.aw.atos.net:8443&client_id=mcdofruser&response_type=code",headers=${headers}, allow_redirects = False)    modules=requests    
+    Should Be Equal    ${resp.status_code}    ${302}
+    log    ${resp.headers}
+    ${Location}    Split String    ${resp.headers["Location"]}    code=
+    ${code}    Get From List    ${Location}    1
+    Log     ${code}
+    Set Test Variable    ${code}    
+
+Get Token 
+    ${parameters}    Create Dictionary    grant_type=${authorization_code}    code=${code}    redirect_uri=${redirect_uri}    client_secret=${client_secret}    client_id=${client_id}
+    Post Request With Parameters    ${ws_mcdonalds_alias}    ${oauth_token}    ${parameters}
+    The Response Code Should    ${200}
+    The Response Content Should contain key    access_token
+    The Response Content Should contain key    refresh_token
+    Should Be Equal    ${resp.json().get("token_type")}    bearer
+    ${access_token}    Set Variable    ${resp.json().get("access_token")}
+    ${refresh_token}    Set Variable    ${resp.json().get("refresh_token")}
+    Set Test Variable    ${access_token}    
+    Set Test Variable    ${refresh_token} 
+
+    

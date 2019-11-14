@@ -1,0 +1,13 @@
+*** Variables ***
+${oauth_token}    /oauth/token
+${dologin}    /dologin
+${oauth_authorize}    /oauth/authorize
+${create_prospect}    /api/customer/create/prospect
+${authorization_code}    authorization_code
+${redirect_uri}    https://www.local-www-mcdonalds-fr.aw.atos.net:8443
+${client_secret}        eF5KytZqFWJ7GGskDotJCau0t1xoHKLLfEjBW8QrTpnpWFznRQWhQg776tmD3Vc7qlwaicr1qEga7DnP
+${trusted_client_secret}    3fabead75762640a0f45e794d5668df0777d29766a4c0ed00c9face195f09ebf5d0a1a7c3dd391ef
+${trusted_client_id}    lsm-online
+${client_id}    mcdofruser
+${client_credentials}    client_credentials
+${mcdo_basic_auth}    basic bWNkb25hbGRzOk1jRDBuQGxkWg

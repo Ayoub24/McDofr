@@ -1,0 +1,175 @@
+*** Settings ***
+Library     Collections
+Library     String
+Library     RequestsLibrary
+Library     OperatingSystem
+Library     JSONSchemaLibrary
+Library     HttpLibrary.HTTP
+
+
+*** Variables ***
+${resp}     null
+
+
+*** Keyword***
+Get Request With Parameters		
+    [Arguments]            ${Alias}           ${path_ressource}    ${params}
+    ${resp}=               Get Request        ${Alias}             ${path_ressource}    params=${params}
+    Set Global Variable    ${resp}
+    log                    ${resp.content}
+    
+Get Request Without Parameter		
+    [Arguments]            ${Alias}       ${path_ressource}
+    ${resp}=               Get Request    ${Alias}             ${path_ressource}
+    Set Global Variable    ${resp}
+    log                    ${resp.content}
+    
+Post Request With Parameters		
+    [Arguments]            ${Alias}                ${path_ressource}    ${Parameters}
+    ${resp}=               Post Request            ${Alias}             ${path_ressource}    params=${Parameters}
+    Set Global Variable    ${resp}
+    log                    ${resp.content}
+ 
+Post Request Without Parameter		
+    [Arguments]            ${Alias}        ${path_ressource}
+    ${resp}=               Post Request    ${Alias}             ${path_ressource}
+    Set Global Variable    ${resp}
+
+Post Request With Data
+    [Arguments]            ${Alias}        ${path_ressource}    ${data}
+    ${resp}=               Post Request    ${Alias}             ${path_ressource}    data=${data}
+    Set Global Variable    ${resp}
+    
+Post Request With Headers
+    [Arguments]            ${Alias}            ${path_ressource}    ${headers}
+    ${resp}=               Post Request        ${Alias}             ${path_ressource}    headers=${headers}
+    Set Global Variable    ${resp}
+    log                    ${resp.content}
+
+
+Post Request With Headers and data
+    [Arguments]            ${Alias}           ${path_ressource}    ${headers}           ${data}
+    ${resp}=               Post Request       ${Alias}             ${path_ressource}    headers=${headers}    data=${data}
+    Set Global Variable    ${resp}
+    log                    ${resp.content}
+    
+The Response Code Should
+    [Arguments]                   ${code}
+    Should Be Equal As Strings    ${resp.status_code}    ${code}
+  
+The Response content Should
+    [Arguments]                   ${respContent}
+    Should Be Equal As Strings    ${resp.content}    ${respContent}
+    
+The Response content Should contains value  
+    [Arguments]                   ${key}           ${value}
+    ${resp.value}=                Set Variable     ${resp.json().get("${Key}")}
+    Should Be Equal As Strings    ${resp.value}    ${value}
+    
+The response contains child with value 
+    [Arguments]    ${parent}    ${child}           ${value}   
+    ${child}=    Set Variable    ${resp.json().get("${parent}")['${child}']}
+    Should be Equal           ${child}     ${value} 
+    
+The response Should be contains ${child} with ${value}  
+    ${Str}  Set Global Variable    ${resp.content}  
+    ${json_data}    Parse Json    ${resp.content} 
+    Log    ${json_data} 
+
+The response Should contain key 
+  [Arguments]    ${Key}
+    Dictionary Should Contain Key    ${resp.content}                 ${Key}
+    
+Get value ${Key}
+      ${value}=                   Set Variable                   ${resp.json().get("${Key}")}   
+      [Return]  ${value}
+
+Get first value by Index ${Key}          
+      ${value}=                   Set Variable                   ${resp.json().get("${Key}")[0]}   
+      [Return]  ${value}
+      
+Get second value by Index ${Key}         
+      ${value}=                   Set Variable                   ${resp.json().get("${Key}")[4]}   
+      [Return]  ${value}
+       
+Check Element
+    ${json_value}  Get Json Value   ${resp.content}   /children/0/ref
+    Log   ${json_value}
+    Json Value Should Equal    ${resp.content}   /children/1/products/0/type    "menu" 
+    Should be Equal           ${resp.json()['children']}     "menu"     
+    
+Post Request With param and Headers
+    [Arguments]                   ${Alias}                     ${path_ressource}         ${Parameters}      ${headers}
+    ${resp}=                      Post Request            ${Alias}           ${path_ressource}      params=${Parameters}      headers=${headers}
+     Set Global Variable    ${resp}   
+     log    ${resp.content}     
+
+Post Request With Headers And Data Without Redirection
+    [Arguments]                   ${Alias}                     ${path_ressource}         ${headers}    ${data}
+    ${resp}=                      Post Request    ${Alias}    ${path_ressource}      headers=${headers}    data=${data}       
+    Set Global Variable    ${resp}   
+    log    ${resp.content}
+    log    ${resp.headers}
+     
+Put Request With Header and Json
+    [Arguments]    ${Alias}    ${path_ressource}    ${headers}    ${data}    
+    ${resp}=    Put Request    ${Alias}    ${path_ressource}    json=${data}    headers=${headers}    
+    Set Global Variable    ${resp}   
+    log    ${resp.content}  
+
+Put Request With Header 
+    [Arguments]    ${Alias}    ${path_ressource}    ${headers}       
+    ${resp}=    Put Request    ${Alias}    ${path_ressource}    headers=${headers}    
+    Set Global Variable    ${resp}   
+    log    ${resp.content}  
+    
+Put Request With Data
+    [Arguments]    ${Alias}    ${path_ressource}    ${data}    
+    ${resp}=    Put Request    ${Alias}    ${path_ressource}    data=${data}       
+    Set Global Variable    ${resp}   
+    log    ${resp.content}  
+        
+Get Request With Header    
+    [Arguments]    ${Alias}    ${path_ressource}    ${headers}        
+    ${resp}=    Get Request    ${Alias}    ${path_ressource}    headers=${headers}    
+    Set Global Variable    ${resp}   
+    log    ${resp.content}
+    
+Get Request With Header And Parameter    
+    [Arguments]            ${Alias}           ${path_ressource}    ${headers}    ${params}
+    ${resp}=                Get Request        ${Alias}             ${path_ressource}    headers=${headers}    params=${params}
+    Set Global Variable    ${resp}
+    log                    ${resp.content}
+
+Get Request With Header And Parameter Without Redirection   
+    [Arguments]            ${Alias}           ${path_ressource}    ${headers}    ${params}
+    ${resp}=                Get Request        ${Alias}             ${path_ressource}    headers=${headers}    params=${params}    allow_redirects=false
+    Log  Status Code: ${res.status_code} History: ${res.history}  level=warn   
+    Set Global Variable    ${resp}
+    log                    ${resp.content}
+        
+The response Should not contain key 
+  [Arguments]    ${Key}
+    Dictionary Should Not Contain Key    ${resp.content}                 ${Key}
+    
+The response headers Should contain key 
+  [Arguments]    ${Key}
+    Dictionary Should Contain Key    ${resp.headers}                 ${Key}
+
+The Response Content Should contain key 
+  [Arguments]    ${Key}
+    Dictionary Should Contain Key    ${resp.json()}                 ${Key}
+       
+Delete Request Without Parameter		
+    [Arguments]            ${Alias}        ${path_ressource}
+    ${resp}=               Delete Request    ${Alias}             ${path_ressource}
+    Set Global Variable    ${resp}
+    log                    ${resp.content}
+    
+Delete Request With Header		
+    [Arguments]             ${Alias}            ${path_ressource}    ${headers}
+    ${resp}=               Delete Request    ${Alias}             ${path_ressource}      headers=${headers}
+    Set Global Variable    ${resp}
+    log                    ${resp.content}    
+    
+    

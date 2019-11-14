@@ -1,0 +1,6 @@
+ws_mcdonalds_alias="ws_mcdonalds"
+ws_mcdonalds_url="https://qlf2-ws-mcdonalds-fr.aw.atos.net"
+connect_mcdonalds_alias="connect_mcdonalds"
+connect_mcdonalds_url="https://qlf2-connect-mcdonalds-fr.mcdo.as8677.net"
+user_email = "ayoub.anwar24@gmail.com"
+user_password = "Anwar24@gmail"

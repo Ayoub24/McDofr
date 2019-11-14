@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec generated="20191103 09:48:01" type="library" name="JSONSchemaLibrary" format="ROBOT">
+<version></version>
+<scope>global</scope>
+<namedargs>yes</namedargs>
+<doc>JSONSchemaLibrary is a library to validate JSON against JSON Schema definitions using Robot Framework.
+
+It uses the jsonschema library for Python: https://github.com/Julian/jsonschema
+
+*Before running tests*
+
+Prior to running JSONSchemaLibrary tests, you must make sure that the JSON Schema definitions are available
+somewhere on the local filesystem. The default is to look in a subdirectory called `schemas`.</doc>
+<init>
+<arguments>
+<arg>schema_location=schemas</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</init>
+<kw name="Validate Json">
+<arguments>
+<arg>schema_filename</arg>
+<arg>sample</arg>
+</arguments>
+<doc>Validates the sample JSON against the given schema.</doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>
